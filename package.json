@@ -1,0 +1,8 @@
+{
+  "name": "elnaar-fire-bot",
+  "version": "1.0.0",
+  "description": "ElNaaR fire-themed Discord welcome and reply bot",
+  "main": "index.js",
+  "scripts": { "start": "node index.js" },
+  "dependencies": { "discord.js": "^14.19.3" }
+}
