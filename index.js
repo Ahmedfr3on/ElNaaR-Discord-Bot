@@ -17,8 +17,6 @@ const welcomeChannelId =
   process.env.WELCOME_CHANNEL_ID || "1561910009753903206";
 const replyChannelId =
   process.env.REPLY_CHANNEL_ID || "1561116825847079005";
-const replyChannelId =
-  process.env.REPLY_CHANNEL_ID || "1561116825847079005";
 
 if (!token) {
   console.error("❌ DISCORD_TOKEN is missing. Add it in EuizHost → Environment Variables.");
