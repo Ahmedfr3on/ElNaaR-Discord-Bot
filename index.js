@@ -50,7 +50,7 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — UPDATED MEMBER DETAILS
+// WELCOME IMAGE — FIXED TEXT RENDERING
 // ═══════════════════════════════════════
 
 function roundedRect(ctx, x, y, w, h, r) {
@@ -71,12 +71,12 @@ async function makeWelcomeImage(member) {
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
   // ═══════════════════════════════
-  // MEMBER AVATAR (الصورة الشخصية)
+  // MEMBER AVATAR (زي ما هي مظبوطة)
   // ═══════════════════════════════
 
-  const avatarCX = 1092; // تم ضبطها بالظبط في نص الدائرة
-  const avatarCY = 420;  // تم ضبطها بالظبط في نص الدائرة
-  const avatarR = 79;    // حجم الدائرة بالظبط
+  const avatarCX = 1095; 
+  const avatarCY = 420;  
+  const avatarR = 83;    
 
   const avatarUrl = member.displayAvatarURL({
     extension: 'png',
@@ -122,46 +122,29 @@ async function makeWelcomeImage(member) {
   // MEMBER NAME (الاسم)
   // ═══════════════════════════════
 
-  const username =
-    member.user.globalName || member.user.username;
+  const username = member.user.globalName || member.user.username;
 
   ctx.save();
-
-  ctx.textAlign = 'center'; // في النص
+  ctx.textAlign = 'center'; 
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FFF0C2';
-  ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  
+  // نص أبيض ناصع عشان يبان
+  ctx.fillStyle = '#FFFFFF'; 
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
 
-  let nameFontSize = 22;
-
+  let nameFontSize = 24;
   ctx.font = `bold ${nameFontSize}px Sans`;
 
-  while (
-    ctx.measureText(username).width > 180 &&
-    nameFontSize > 12
-  ) {
+  // تصغير الخط لو الاسم طويل
+  while (ctx.measureText(username).width > 180 && nameFontSize > 12) {
     nameFontSize--;
     ctx.font = `bold ${nameFontSize}px Sans`;
   }
 
-  ctx.lineWidth = 1;
-  ctx.strokeStyle = '#401000';
-
-  // مكان الاسم جوه المستطيل اللي تحت التاج
-  ctx.strokeText(
-    username,
-    1330, 
-    395,  
-    180
-  );
-
-  ctx.fillText(
-    username,
-    1330,
-    395,
-    180
-  );
+  // مكان الاسم في المربع الفاضي
+  ctx.strokeText(username, 1345, 385);
+  ctx.fillText(username, 1345, 385);
 
   ctx.restore();
 
@@ -169,26 +152,21 @@ async function makeWelcomeImage(member) {
   // MEMBER NUMBER (رقم العضو)
   // ═══════════════════════════════
 
-  const memberNumber = String(
-    member.guild.memberCount
-  );
+  const memberNumber = String(member.guild.memberCount);
 
   ctx.save();
-
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.font = 'bold 20px Sans';
-  ctx.fillStyle = '#FFF0C2';
-  ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  
+  ctx.fillStyle = '#FFFFFF'; 
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
+  
+  ctx.font = 'bold 22px Sans';
 
   // مكان الرقم جنب كلمة MEMBER #
-  ctx.fillText(
-    memberNumber,
-    1345, 
-    472,  
-    80
-  );
+  ctx.strokeText(memberNumber, 1355, 455);
+  ctx.fillText(memberNumber, 1355, 455);
 
   ctx.restore();
 
@@ -196,9 +174,7 @@ async function makeWelcomeImage(member) {
   // JOINED DATE (تاريخ الانضمام)
   // ═══════════════════════════════
 
-  const joinedDate = (
-    member.joinedAt || new Date()
-  ).toLocaleDateString('en-GB', {
+  const joinedDate = (member.joinedAt || new Date()).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -206,32 +182,25 @@ async function makeWelcomeImage(member) {
   });
 
   ctx.save();
-
   ctx.textAlign = 'left'; 
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FFF0C2';
-  ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  
+  ctx.fillStyle = '#FFFFFF'; 
+  ctx.strokeStyle = '#000000';
+  ctx.lineWidth = 3;
 
-  let dateFontSize = 15;
-
+  let dateFontSize = 18;
   ctx.font = `bold ${dateFontSize}px Sans`;
 
-  while (
-    ctx.measureText(joinedDate).width > 95 &&
-    dateFontSize > 10
-  ) {
+  // تصغير الخط لو التاريخ طويل
+  while (ctx.measureText(joinedDate).width > 100 && dateFontSize > 10) {
     dateFontSize--;
     ctx.font = `bold ${dateFontSize}px Sans`;
   }
 
   // مكان التاريخ جنب كلمة JOINED:
-  ctx.fillText(
-    joinedDate,
-    1345, 
-    515,  
-    95
-  );
+  ctx.strokeText(joinedDate, 1355, 500);
+  ctx.fillText(joinedDate, 1355, 500);
 
   ctx.restore();
 
