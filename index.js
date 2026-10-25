@@ -49,118 +49,122 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — FIXED ALIGNMENT & FONTS
+// WELCOME IMAGE — CODE DRAWS EVERYTHING
 // ═══════════════════════════════════════
-
-function roundedRect(ctx, x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y);
-  ctx.closePath();
-}
 
 async function makeWelcomeImage(member) {
   const bg = await loadImage(BACKGROUND_PATH);
   const canvas = createCanvas(bg.width, bg.height);
   const ctx = canvas.getContext('2d');
 
+  // رسم الصورة اللي إنت رفعتها
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
+  // حساب الأماكن بناءً على مقاس صورتك (سواء كانت 1536x1024 أو غيرها)
+  const centerX = bg.width / 2;
+  const centerY = bg.height / 2;
+
   // ═══════════════════════════════
-  // MEMBER AVATAR (الصورة الشخصية)
+  // 1. رسم المربع الأسود بتاع البيانات (على اليمين)
   // ═══════════════════════════════
+  const boxW = 500;
+  const boxH = 550;
+  const boxX = bg.width - boxW - 50; // مكان المربع على اليمين
+  const boxY = centerY - (boxH / 2);
 
-  // الأرقام دي مظبوطة على التصميم اللي إنت رافعه
-  const avatarCX = 1105; 
-  const avatarCY = 420;  
-  const avatarR = 83;    
-
-  const avatarUrl = member.displayAvatarURL({ extension: 'png', size: 256 });
-  const avatar = await loadImage(avatarUrl);
-
-  ctx.save();
+  // المربع نفسه
+  ctx.fillStyle = 'rgba(5, 5, 5, 0.85)'; // أسود شفاف شوية
+  ctx.strokeStyle = '#ff6600'; // إطار برتقالي
+  ctx.lineWidth = 4;
+  ctx.shadowColor = '#ff3300';
+  ctx.shadowBlur = 20;
+  
   ctx.beginPath();
-  ctx.arc(avatarCX, avatarCY, avatarR, 0, Math.PI * 2);
-  ctx.clip();
-
-  const diameter = avatarR * 2;
-  const scale = Math.max(diameter / avatar.width, diameter / avatar.height);
-  const drawW = avatar.width * scale;
-  const drawH = avatar.height * scale;
-
-  ctx.drawImage(avatar, avatarCX - drawW / 2, avatarCY - drawH / 2, drawW, drawH);
-  ctx.restore();
+  ctx.roundRect(boxX, boxY, boxW, boxH, 20);
+  ctx.fill();
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
   // ═══════════════════════════════
-  // MEMBER NAME (الاسم)
+  // 2. رسم الصورة الشخصية
   // ═══════════════════════════════
+  const avatarCX = boxX + 120;
+  const avatarCY = boxY + 150;
+  const avatarR = 80;
 
+  // الدائرة الخلفية للصورة
+  ctx.beginPath();
+  ctx.arc(avatarCX, avatarCY, avatarR + 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#000000';
+  ctx.fill();
+  ctx.strokeStyle = '#ff6600';
+  ctx.lineWidth = 5;
+  ctx.stroke();
+
+  // الصورة نفسها
+  try {
+    const avatarUrl = member.displayAvatarURL({ extension: 'png', size: 256 });
+    const avatar = await loadImage(avatarUrl);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(avatarCX, avatarCY, avatarR, 0, Math.PI * 2);
+    ctx.clip();
+    const diameter = avatarR * 2;
+    const scale = Math.max(diameter / avatar.width, diameter / avatar.height);
+    const drawW = avatar.width * scale;
+    const drawH = avatar.height * scale;
+    ctx.drawImage(avatar, avatarCX - drawW / 2, avatarCY - drawH / 2, drawW, drawH);
+    ctx.restore();
+  } catch (e) {
+    console.log("مش قادر يحمل الصورة");
+  }
+
+  // ═══════════════════════════════
+  // 3. كتابة البيانات (الاسم، الرقم، التاريخ)
+  // ═══════════════════════════════
+  
+  // كلمة NEW MEMBER
+  ctx.fillStyle = '#ffaa00';
+  ctx.font = 'bold 40px "Segoe UI", Arial, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('NEW MEMBER', boxX + (boxW / 2) + 50, boxY + 80);
+
+  // خط فاصل
+  ctx.beginPath();
+  ctx.moveTo(boxX + 40, boxY + 240);
+  ctx.lineTo(boxX + boxW - 40, boxY + 240);
+  ctx.strokeStyle = '#ff6600';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // الاسم
   const username = member.user.globalName || member.user.username;
-  
-  ctx.save();
-  // استخدام خط مضمون جداً
-  ctx.font = 'bold 24px "Segoe UI", "Arial", sans-serif'; 
-  ctx.textAlign = 'center'; 
-  ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFFFFF';
-  
-  // إضافة ظل للنص عشان يبان فوق الخلفية
-  ctx.shadowColor = '#000000';
-  ctx.shadowBlur = 4;
-  ctx.shadowOffsetX = 2;
-  ctx.shadowOffsetY = 2;
-
-  // مكان الاسم (في المستطيل الفاضي تحت التاج)
-  ctx.fillText(username, 1345, 385);
-  ctx.restore();
-
-  // ═══════════════════════════════
-  // MEMBER NUMBER (رقم العضو)
-  // ═══════════════════════════════
-
-  const memberNumber = String(member.guild.memberCount);
-  
-  ctx.save();
-  ctx.font = 'bold 22px "Segoe UI", "Arial", sans-serif';
+  ctx.font = 'bold 30px "Segoe UI", Arial, sans-serif';
   ctx.textAlign = 'left';
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FFFFFF'; 
-  ctx.shadowColor = '#000000';
-  ctx.shadowBlur = 4;
-  ctx.shadowOffsetX = 2;
-  ctx.shadowOffsetY = 2;
+  ctx.fillText(username, boxX + 40, boxY + 290);
 
-  // مكان الرقم (جنب كلمة MEMBER #)
-  ctx.fillText(memberNumber, 1380, 465);
-  ctx.restore();
+  // رقم العضو
+  ctx.fillStyle = '#ffaa00';
+  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.fillText('MEMBER #', boxX + 40, boxY + 350);
+  
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 28px "Segoe UI", Arial, sans-serif';
+  ctx.fillText(String(member.guild.memberCount), boxX + 200, boxY + 350);
 
-  // ═══════════════════════════════
-  // JOINED DATE (تاريخ الانضمام)
-  // ═══════════════════════════════
-
+  // تاريخ الانضمام
   const joinedDate = (member.joinedAt || new Date()).toLocaleDateString('en-GB', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    timeZone: 'Africa/Cairo'
+    day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Cairo'
   });
 
-  ctx.save();
-  ctx.font = 'bold 18px "Segoe UI", "Arial", sans-serif';
-  ctx.textAlign = 'left'; 
-  ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#FFFFFF'; 
-  ctx.shadowColor = '#000000';
-  ctx.shadowBlur = 4;
-  ctx.shadowOffsetX = 2;
-  ctx.shadowOffsetY = 2;
+  ctx.fillStyle = '#ffaa00';
+  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.fillText('JOINED:', boxX + 40, boxY + 410);
 
-  // مكان التاريخ (جنب كلمة JOINED:)
-  ctx.fillText(joinedDate, 1380, 505);
-  ctx.restore();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.fillText(joinedDate, boxX + 170, boxY + 410);
 
   // ═══════════════════════════════
   // EXPORT IMAGE
