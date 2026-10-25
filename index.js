@@ -119,7 +119,7 @@ async function makeWelcomeImage(member) {
   ctx.restore();
 
   // ═══════════════════════════════
-  // MEMBER NAME
+  // MEMBER NAME (الاسم جنب التاج)
   // ═══════════════════════════════
 
   const username =
@@ -127,7 +127,7 @@ async function makeWelcomeImage(member) {
 
   ctx.save();
 
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left'; // تم التعديل ليظهر الاسم من الشمال
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFF0C2';
   ctx.shadowColor = '#FF7A00';
@@ -148,24 +148,25 @@ async function makeWelcomeImage(member) {
   ctx.lineWidth = 1;
   ctx.strokeStyle = '#401000';
 
+  // تم تعديل الإحداثيات (X: 1350, Y: 345) لتكون جنب التاج
   ctx.strokeText(
     username,
-    1353,
-    408,
-    210
+    1350,
+    345,
+    180
   );
 
   ctx.fillText(
     username,
-    1353,
-    408,
-    210
+    1350,
+    345,
+    180
   );
 
   ctx.restore();
 
   // ═══════════════════════════════
-  // MEMBER NUMBER
+  // MEMBER NUMBER (رقم العضو)
   // ═══════════════════════════════
 
   const memberNumber = String(
@@ -181,17 +182,18 @@ async function makeWelcomeImage(member) {
   ctx.shadowColor = '#FF7A00';
   ctx.shadowBlur = 3;
 
+  // تم تعديل الإحداثيات (X: 1300, Y: 425) لتكون جنب كلمة MEMBER #
   ctx.fillText(
     memberNumber,
-    1380,
-    458,
+    1300,
+    425,
     75
   );
 
   ctx.restore();
 
   // ═══════════════════════════════
-  // JOINED DATE
+  // JOINED DATE (تاريخ الانضمام)
   // ═══════════════════════════════
 
   const joinedDate = (
@@ -205,7 +207,7 @@ async function makeWelcomeImage(member) {
 
   ctx.save();
 
-  ctx.textAlign = 'center';
+  ctx.textAlign = 'left'; // تم التعديل ليظهر التاريخ من الشمال
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFF0C2';
   ctx.shadowColor = '#FF7A00';
@@ -223,10 +225,11 @@ async function makeWelcomeImage(member) {
     ctx.font = `bold ${dateFontSize}px Sans`;
   }
 
+  // تم تعديل الإحداثيات (X: 1280, Y: 465) لتكون جنب كلمة JOINED:
   ctx.fillText(
     joinedDate,
-    1400,
-    501,
+    1280,
+    465,
     94
   );
 
