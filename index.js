@@ -21,7 +21,7 @@ const replyChannelId = process.env.REPLY_CHANNEL_ID || '1561116825847079005';
 const BACKGROUND_PATH = './welcome-bg.png'; 
 
 // ═══════════════════════════════════════
-// تسجيل الخط (السطر ده هو اللي هيحل المشكلة)
+// تسجيل الخط
 // ═══════════════════════════════════════
 try {
   GlobalFonts.registerFromPath('./font.ttf', 'MyFont');
@@ -49,7 +49,7 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE
+// WELCOME IMAGE — FIERY HUD DESIGN
 // ═══════════════════════════════════════
 
 async function makeWelcomeImage(member) {
@@ -59,40 +59,78 @@ async function makeWelcomeImage(member) {
 
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
-  const centerX = bg.width / 2;
   const centerY = bg.height / 2;
 
-  // 1. رسم المربع الأسود
-  const boxW = 500;
-  const boxH = 550;
-  const boxX = bg.width - boxW - 50;
+  // ═══════════════════════════════
+  // 1. تصميم البطاقة النارية (HUD Style)
+  // ═══════════════════════════════
+  const boxW = 520;
+  const boxH = 580;
+  const boxX = bg.width - boxW - 60;
   const boxY = centerY - (boxH / 2);
+  const cut = 25; // حجم الزاوية المقطوعة
 
-  ctx.fillStyle = 'rgba(5, 5, 5, 0.85)';
-  ctx.strokeStyle = '#ff6600';
-  ctx.lineWidth = 4;
-  ctx.shadowColor = '#ff3300';
-  ctx.shadowBlur = 20;
-  
+  // أ. الخلفية السوداء بتدرج أحمر ناري
+  const cardGrad = ctx.createLinearGradient(boxX, boxY, boxX + boxW, boxY + boxH);
+  cardGrad.addColorStop(0, 'rgba(40, 0, 0, 0.9)');
+  cardGrad.addColorStop(0.5, 'rgba(10, 0, 0, 0.95)');
+  cardGrad.addColorStop(1, 'rgba(30, 0, 0, 0.9)');
+
+  ctx.fillStyle = cardGrad;
   ctx.beginPath();
-  ctx.roundRect(boxX, boxY, boxW, boxH, 20);
+  // رسم شكل الزوايا المقطوعة (HUD)
+  ctx.moveTo(boxX + cut, boxY);
+  ctx.lineTo(boxX + boxW - cut, boxY);
+  ctx.lineTo(boxX + boxW, boxY + cut);
+  ctx.lineTo(boxX + boxW, boxY + boxH - cut);
+  ctx.lineTo(boxX + boxW - cut, boxY + boxH);
+  ctx.lineTo(boxX + cut, boxY + boxH);
+  ctx.lineTo(boxX, boxY + boxH - cut);
+  ctx.lineTo(boxX, boxY + cut);
+  ctx.closePath();
   ctx.fill();
-  ctx.stroke();
+
+  // ب. الإطار الناري المتوهج
+  ctx.shadowColor = '#ff3300';
+  ctx.shadowBlur = 35;
+  ctx.strokeStyle = '#ff5500';
+  ctx.lineWidth = 6;
+  ctx.stroke(); // رسم نفس الشكل
+
+  // ج. إطار داخلي رفيع بلون ذهبي عشان يدي فخامة
   ctx.shadowBlur = 0;
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
 
-  // 2. رسم الصورة الشخصية
-  const avatarCX = boxX + 120;
-  const avatarCY = boxY + 150;
-  const avatarR = 80;
+  // ═══════════════════════════════
+  // 2. الصورة الشخصية (مع إضاءة نارية)
+  // ═══════════════════════════════
+  const avatarCX = boxX + 130;
+  const avatarCY = boxY + 170;
+  const avatarR = 85;
 
+  // هالة نارية حوالين الصورة
+  ctx.beginPath();
+  ctx.arc(avatarCX, avatarCY, avatarR + 15, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 51, 0, 0.2)';
+  ctx.fill();
+
+  // الدائرة السوداء
   ctx.beginPath();
   ctx.arc(avatarCX, avatarCY, avatarR + 5, 0, Math.PI * 2);
   ctx.fillStyle = '#000000';
   ctx.fill();
-  ctx.strokeStyle = '#ff6600';
-  ctx.lineWidth = 5;
+  
+  // إطار الصورة المتوهج
+  ctx.strokeStyle = '#ffaa00';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = '#ff3300';
+  ctx.shadowBlur = 20;
   ctx.stroke();
+  ctx.shadowBlur = 0;
 
+  // وضع الصورة
   try {
     const avatarUrl = member.displayAvatarURL({ extension: 'png', size: 256 });
     const avatar = await loadImage(avatarUrl);
@@ -110,50 +148,80 @@ async function makeWelcomeImage(member) {
     console.log("مش قادر يحمل الصورة");
   }
 
-  // 3. كتابة البيانات باستخدام الخط الجديد
-  ctx.textAlign = 'center';
+  // ═══════════════════════════════
+  // 3. النصوص (توهج ناري)
+  // ═══════════════════════════════
   
   // كلمة NEW MEMBER
-  ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 35px "MyFont"'; // استخدام الخط اللي حملناه
-  ctx.fillText('NEW MEMBER', boxX + (boxW / 2) + 50, boxY + 80);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#FFD700'; // ذهبي
+  ctx.font = 'bold 35px "MyFont"';
+  ctx.shadowColor = '#ff3300';
+  ctx.shadowBlur = 10;
+  ctx.fillText('NEW MEMBER', boxX + (boxW / 2) + 40, boxY + 80);
+  ctx.shadowBlur = 0;
 
-  // خط فاصل
+  // خط فاصل ناري
+  const lineGrad = ctx.createLinearGradient(boxX + 40, 0, boxX + boxW - 40, 0);
+  lineGrad.addColorStop(0, 'rgba(255, 51, 0, 0)');
+  lineGrad.addColorStop(0.5, '#ff5500');
+  lineGrad.addColorStop(1, 'rgba(255, 51, 0, 0)');
+  
   ctx.beginPath();
-  ctx.moveTo(boxX + 40, boxY + 240);
-  ctx.lineTo(boxX + boxW - 40, boxY + 240);
-  ctx.strokeStyle = '#ff6600';
-  ctx.lineWidth = 2;
+  ctx.moveTo(boxX + 40, boxY + 250);
+  ctx.lineTo(boxX + boxW - 40, boxY + 250);
+  ctx.strokeStyle = lineGrad;
+  ctx.lineWidth = 3;
   ctx.stroke();
 
-  // الاسم
+  // الاسم (بحجم كبير وتوهج)
   const username = member.user.globalName || member.user.username;
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 28px "MyFont"'; 
-  ctx.textAlign = 'left';
-  ctx.fillText(username, boxX + 40, boxY + 290);
+  ctx.font = 'bold 32px "MyFont"'; 
+  ctx.textAlign = 'center';
+  ctx.shadowColor = '#ff5500';
+  ctx.shadowBlur = 15;
+  ctx.fillText(username, boxX + (boxW / 2), boxY + 310);
+  ctx.shadowBlur = 0;
 
   // رقم العضو
-  ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 25px "MyFont"';
-  ctx.fillText('MEMBER #', boxX + 40, boxY + 350);
+  ctx.textAlign = 'left';
   
+  // كلمة MEMBER #
+  ctx.fillStyle = '#ffaa00';
+  ctx.font = 'bold 24px "MyFont"';
+  ctx.fillText('MEMBER #', boxX + 50, boxY + 390);
+  
+  // الرقم نفسه
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 28px "MyFont"';
-  ctx.fillText(String(member.guild.memberCount), boxX + 200, boxY + 350);
+  ctx.font = 'bold 26px "MyFont"';
+  ctx.fillText(String(member.guild.memberCount), boxX + 210, boxY + 390);
 
   // تاريخ الانضمام
   const joinedDate = (member.joinedAt || new Date()).toLocaleDateString('en-GB', {
     day: '2-digit', month: 'short', year: 'numeric', timeZone: 'Africa/Cairo'
   });
 
+  // كلمة JOINED:
   ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 25px "MyFont"';
-  ctx.fillText('JOINED:', boxX + 40, boxY + 410);
+  ctx.font = 'bold 24px "MyFont"';
+  ctx.fillText('JOINED:', boxX + 50, boxY + 460);
 
+  // التاريخ
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 25px "MyFont"';
-  ctx.fillText(joinedDate, boxX + 170, boxY + 410);
+  ctx.font = 'bold 24px "MyFont"';
+  ctx.fillText(joinedDate, boxX + 160, boxY + 460);
+
+  // إضافة لمسة نارية أسفل البطاقة (خط متوهج)
+  ctx.beginPath();
+  ctx.moveTo(boxX + 100, boxY + boxH - 30);
+  ctx.lineTo(boxX + boxW - 100, boxY + boxH - 30);
+  ctx.strokeStyle = '#ff3300';
+  ctx.lineWidth = 4;
+  ctx.shadowColor = '#ff5500';
+  ctx.shadowBlur = 20;
+  ctx.stroke();
+  ctx.shadowBlur = 0;
 
   return new AttachmentBuilder(await canvas.encode('png'), {
     name: 'elnaar-welcome.png'
