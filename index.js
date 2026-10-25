@@ -7,7 +7,7 @@ const {
   ActivityType
 } = require('discord.js');
 
-const { createCanvas, loadImage } = require('@napi-rs/canvas');
+const { createCanvas, loadImage, GlobalFonts } = require('@napi-rs/canvas');
 
 const token = process.env.DISCORD_TOKEN;
 
@@ -16,18 +16,22 @@ const token = process.env.DISCORD_TOKEN;
 // ═══════════════════════════════════════
 
 const OWNER_ID = "1055282336784195674";
-
-const welcomeChannelId =
-  process.env.WELCOME_CHANNEL_ID || '1561910009753903206';
-
-const replyChannelId =
-  process.env.REPLY_CHANNEL_ID || '1561116825847079005';
-
-// تأكد إن اسم الصورة هنا مطابق للملف اللي في جيت هاب
+const welcomeChannelId = process.env.WELCOME_CHANNEL_ID || '1561910009753903206';
+const replyChannelId = process.env.REPLY_CHANNEL_ID || '1561116825847079005';
 const BACKGROUND_PATH = './welcome-bg.png'; 
 
+// ═══════════════════════════════════════
+// تسجيل الخط (السطر ده هو اللي هيحل المشكلة)
+// ═══════════════════════════════════════
+try {
+  GlobalFonts.registerFromPath('./font.ttf', 'MyFont');
+  console.log('✅ تم تحميل الخط بنجاح');
+} catch (e) {
+  console.log('⚠️ تحذير: ملف font.ttf مش موجود، النص ممكن ميظهرش');
+}
+
 if (!token) {
-  console.error('❌ DISCORD_TOKEN مش موجود. ضيفه في Environment Variables في EuizHost.');
+  console.error('❌ DISCORD_TOKEN مش موجود.');
   process.exit(1);
 }
 
@@ -40,16 +44,12 @@ const client = new Client({
   ]
 });
 
-// ═══════════════════════════════════════
-// OWNER SECURITY
-// ═══════════════════════════════════════
-
 function isOwner(userId) {
   return userId === OWNER_ID;
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — CODE DRAWS EVERYTHING
+// WELCOME IMAGE
 // ═══════════════════════════════════════
 
 async function makeWelcomeImage(member) {
@@ -57,24 +57,19 @@ async function makeWelcomeImage(member) {
   const canvas = createCanvas(bg.width, bg.height);
   const ctx = canvas.getContext('2d');
 
-  // رسم الصورة اللي إنت رفعتها
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
-  // حساب الأماكن بناءً على مقاس صورتك (سواء كانت 1536x1024 أو غيرها)
   const centerX = bg.width / 2;
   const centerY = bg.height / 2;
 
-  // ═══════════════════════════════
-  // 1. رسم المربع الأسود بتاع البيانات (على اليمين)
-  // ═══════════════════════════════
+  // 1. رسم المربع الأسود
   const boxW = 500;
   const boxH = 550;
-  const boxX = bg.width - boxW - 50; // مكان المربع على اليمين
+  const boxX = bg.width - boxW - 50;
   const boxY = centerY - (boxH / 2);
 
-  // المربع نفسه
-  ctx.fillStyle = 'rgba(5, 5, 5, 0.85)'; // أسود شفاف شوية
-  ctx.strokeStyle = '#ff6600'; // إطار برتقالي
+  ctx.fillStyle = 'rgba(5, 5, 5, 0.85)';
+  ctx.strokeStyle = '#ff6600';
   ctx.lineWidth = 4;
   ctx.shadowColor = '#ff3300';
   ctx.shadowBlur = 20;
@@ -85,14 +80,11 @@ async function makeWelcomeImage(member) {
   ctx.stroke();
   ctx.shadowBlur = 0;
 
-  // ═══════════════════════════════
   // 2. رسم الصورة الشخصية
-  // ═══════════════════════════════
   const avatarCX = boxX + 120;
   const avatarCY = boxY + 150;
   const avatarR = 80;
 
-  // الدائرة الخلفية للصورة
   ctx.beginPath();
   ctx.arc(avatarCX, avatarCY, avatarR + 5, 0, Math.PI * 2);
   ctx.fillStyle = '#000000';
@@ -101,7 +93,6 @@ async function makeWelcomeImage(member) {
   ctx.lineWidth = 5;
   ctx.stroke();
 
-  // الصورة نفسها
   try {
     const avatarUrl = member.displayAvatarURL({ extension: 'png', size: 256 });
     const avatar = await loadImage(avatarUrl);
@@ -119,14 +110,12 @@ async function makeWelcomeImage(member) {
     console.log("مش قادر يحمل الصورة");
   }
 
-  // ═══════════════════════════════
-  // 3. كتابة البيانات (الاسم، الرقم، التاريخ)
-  // ═══════════════════════════════
+  // 3. كتابة البيانات باستخدام الخط الجديد
+  ctx.textAlign = 'center';
   
   // كلمة NEW MEMBER
   ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 40px "Segoe UI", Arial, sans-serif';
-  ctx.textAlign = 'center';
+  ctx.font = 'bold 35px "MyFont"'; // استخدام الخط اللي حملناه
   ctx.fillText('NEW MEMBER', boxX + (boxW / 2) + 50, boxY + 80);
 
   // خط فاصل
@@ -140,17 +129,17 @@ async function makeWelcomeImage(member) {
   // الاسم
   const username = member.user.globalName || member.user.username;
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 30px "Segoe UI", Arial, sans-serif';
+  ctx.font = 'bold 28px "MyFont"'; 
   ctx.textAlign = 'left';
   ctx.fillText(username, boxX + 40, boxY + 290);
 
   // رقم العضو
   ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.font = 'bold 25px "MyFont"';
   ctx.fillText('MEMBER #', boxX + 40, boxY + 350);
   
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 28px "Segoe UI", Arial, sans-serif';
+  ctx.font = 'bold 28px "MyFont"';
   ctx.fillText(String(member.guild.memberCount), boxX + 200, boxY + 350);
 
   // تاريخ الانضمام
@@ -159,16 +148,12 @@ async function makeWelcomeImage(member) {
   });
 
   ctx.fillStyle = '#ffaa00';
-  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.font = 'bold 25px "MyFont"';
   ctx.fillText('JOINED:', boxX + 40, boxY + 410);
 
   ctx.fillStyle = '#FFFFFF';
-  ctx.font = 'bold 25px "Segoe UI", Arial, sans-serif';
+  ctx.font = 'bold 25px "MyFont"';
   ctx.fillText(joinedDate, boxX + 170, boxY + 410);
-
-  // ═══════════════════════════════
-  // EXPORT IMAGE
-  // ═══════════════════════════════
 
   return new AttachmentBuilder(await canvas.encode('png'), {
     name: 'elnaar-welcome.png'
@@ -268,7 +253,7 @@ client.on(Events.MessageCreate, async (message) => {
 });
 
 // ═══════════════════════════════════════
-// OWNER COMMANDS — ADMIN ONLY
+// OWNER COMMANDS
 // ═══════════════════════════════════════
 
 client.on(Events.MessageCreate, async (message) => {
