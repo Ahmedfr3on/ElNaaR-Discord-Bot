@@ -71,13 +71,13 @@ async function makeWelcomeImage(member) {
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
   // ═══════════════════════════════
-  // MEMBER AVATAR (مكان الصورة الشخصية)
+  // 1. MEMBER AVATAR (مكان الصورة)
   // ═══════════════════════════════
 
-  // تم تعديل الأرقام دي عشان تيجي في نص الدائرة بالظبط
-  const avatarCX = 1100; 
-  const avatarCY = 440;
-  const avatarR = 80; // حجم الدائرة
+  // الأرقام دي مظبوطة على الدائرة اللي في الصورة
+  const avatarCX = 1070; 
+  const avatarCY = 420;
+  const avatarR = 80; 
 
   const avatarUrl = member.displayAvatarURL({
     extension: 'png',
@@ -120,7 +120,7 @@ async function makeWelcomeImage(member) {
   ctx.restore();
 
   // ═══════════════════════════════
-  // MEMBER NAME (الاسم جنب التاج)
+  // 2. MEMBER NAME (الاسم جنب التاج)
   // ═══════════════════════════════
 
   const username =
@@ -128,46 +128,46 @@ async function makeWelcomeImage(member) {
 
   ctx.save();
 
-  ctx.textAlign = 'left'; 
+  ctx.textAlign = 'center'; 
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFF0C2';
   ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  ctx.shadowBlur = 4;
 
-  let nameFontSize = 25;
+  let nameFontSize = 22;
 
   ctx.font = `bold ${nameFontSize}px Sans`;
 
   while (
-    ctx.measureText(username).width > 180 &&
+    ctx.measureText(username).width > 160 &&
     nameFontSize > 12
   ) {
     nameFontSize--;
     ctx.font = `bold ${nameFontSize}px Sans`;
   }
 
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 1.5;
   ctx.strokeStyle = '#401000';
 
-  // تم تعديل الإحداثيات دي عشان تيجي جوه المستطيل اللي تحت التاج
+  // المكان ده هو المستطيل الفاضي اللي تحت التاج
   ctx.strokeText(
     username,
-    1250, 
-    380,
-    180
+    1330, // مكان الاسم في النص
+    385,  // الارتفاع
+    160
   );
 
   ctx.fillText(
     username,
-    1250,
-    380,
-    180
+    1330,
+    385,
+    160
   );
 
   ctx.restore();
 
   // ═══════════════════════════════
-  // MEMBER NUMBER (رقم العضو)
+  // 3. MEMBER NUMBER (رقم العضو)
   // ═══════════════════════════════
 
   const memberNumber = String(
@@ -181,20 +181,20 @@ async function makeWelcomeImage(member) {
   ctx.font = 'bold 20px Sans';
   ctx.fillStyle = '#FFF0C2';
   ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  ctx.shadowBlur = 4;
 
-  // تم تعديل الإحداثيات دي عشان تيجي جنب كلمة MEMBER #
+  // الرقم ده بيظهر جنب كلمة MEMBER #
   ctx.fillText(
     memberNumber,
-    1300,
-    480,
+    1340, // مكان الرقم
+    468,  // الارتفاع
     75
   );
 
   ctx.restore();
 
   // ═══════════════════════════════
-  // JOINED DATE (تاريخ الانضمام)
+  // 4. JOINED DATE (تاريخ الانضمام)
   // ═══════════════════════════════
 
   const joinedDate = (
@@ -212,26 +212,26 @@ async function makeWelcomeImage(member) {
   ctx.textBaseline = 'middle';
   ctx.fillStyle = '#FFF0C2';
   ctx.shadowColor = '#FF7A00';
-  ctx.shadowBlur = 3;
+  ctx.shadowBlur = 4;
 
   let dateFontSize = 15;
 
   ctx.font = `bold ${dateFontSize}px Sans`;
 
   while (
-    ctx.measureText(joinedDate).width > 90 &&
+    ctx.measureText(joinedDate).width > 95 &&
     dateFontSize > 10
   ) {
     dateFontSize--;
     ctx.font = `bold ${dateFontSize}px Sans`;
   }
 
-  // تم تعديل الإحداثيات دي عشان تيجي جنب كلمة JOINED:
+  // التاريخ بيظهر جنب كلمة JOINED:
   ctx.fillText(
     joinedDate,
-    1290,
-    525,
-    90
+    1350, // مكان التاريخ
+    507,  // الارتفاع
+    95
   );
 
   ctx.restore();
