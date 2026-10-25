@@ -8,14 +8,13 @@ const {
 } = require('discord.js');
 
 const { createCanvas, loadImage } = require('@napi-rs/canvas');
-
 const token = process.env.DISCORD_TOKEN;
 
 // ═══════════════════════════════════════
 // ELNAAR OWNER SETTINGS
 // ═══════════════════════════════════════
 
-const OWNER_ID = "1055282336784195674";
+const OWNER_ID = '1055282336784195674';
 
 const welcomeChannelId =
   process.env.WELCOME_CHANNEL_ID || '1561910009753903206';
@@ -50,7 +49,7 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — ORIGINAL DESIGN
+// WELCOME IMAGE — ELNAAR BORN IN FIRE
 // ═══════════════════════════════════════
 
 function roundedRect(ctx, x, y, w, h, r) {
@@ -63,77 +62,83 @@ function roundedRect(ctx, x, y, w, h, r) {
   ctx.closePath();
 }
 
+function fitText(
+  ctx,
+  text,
+  maxWidth,
+  initialSize,
+  minSize = 18,
+  fontWeight = 'bold'
+) {
+  let size = initialSize;
+
+  while (size > minSize) {
+    ctx.font = `${fontWeight} ${size}px Sans`;
+
+    if (ctx.measureText(text).width <= maxWidth) {
+      break;
+    }
+
+    size -= 1;
+  }
+
+  return size;
+}
+
 async function makeWelcomeImage(member) {
   const bg = await loadImage(BACKGROUND_PATH);
+
   const canvas = createCanvas(bg.width, bg.height);
   const ctx = canvas.getContext('2d');
 
-  ctx.drawImage(bg, 0, 0, bg.width, bg.height);
+  const W = bg.width;
+  const H = bg.height;
 
-  // معلومات العضو داخل التصميم الأصلي
-  const x = Math.round(bg.width * 0.675);
-  const w = Math.round(bg.width * 0.30);
-  const top = Math.round(bg.height * 0.175);
-  const panelH = Math.round(bg.height * 0.57);
+  ctx.drawImage(bg, 0, 0, W, H);
 
+  // صورة العضو داخل الإطار الدائري الموجود بالخلفية
+  const avatarSize = Math.round(Math.min(W, H) * 0.155);
+
+  const avatarCx = W * 0.729;
+  const avatarCy = H * 0.425;
+
+  const avatarX = avatarCx - avatarSize / 2;
+  const avatarY = avatarCy - avatarSize / 2;
+
+  // إطار برتقالي متوهج
   ctx.save();
-  ctx.shadowColor = '#ff4b0b';
-  ctx.shadowBlur = 24;
-  roundedRect(ctx, x, top, w, panelH, 22);
-  ctx.fillStyle = 'rgba(8, 5, 6, 0.97)';
-  ctx.fill();
-  ctx.restore();
 
-  ctx.strokeStyle = '#ff6a00';
-  ctx.lineWidth = 3;
-  roundedRect(ctx, x, top, w, panelH, 22);
-  ctx.stroke();
+  ctx.shadowColor = '#ff5a00';
+  ctx.shadowBlur = Math.max(14, W * 0.012);
 
-  const pad = Math.round(w * 0.075);
-
-  ctx.textAlign = 'left';
-  ctx.fillStyle = '#ff7a18';
-  ctx.font = 'bold 36px Sans';
-  ctx.fillText('A NEW LEGEND RISES', x + pad, top + 58, w - pad * 2);
-
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 28px Sans';
-  ctx.fillText('WELCOME TO ELNAAR', x + pad, top + 112, w - pad * 2);
-
-  ctx.fillStyle = '#ffd27a';
-  ctx.font = '24px Sans';
-  ctx.fillText(
-    'BORN IN FIRE  •  BUILT TO RISE',
-    x + pad,
-    top + 151,
-    w - pad * 2
-  );
-
-  // صورة العضو
-  const avatarSize = Math.round(w * 0.34);
-  const avatarX = x + pad;
-  const avatarY = top + 190;
-
-  ctx.save();
   ctx.beginPath();
+
   ctx.arc(
-    avatarX + avatarSize / 2,
-    avatarY + avatarSize / 2,
-    avatarSize / 2 + 5,
+    avatarCx,
+    avatarCy,
+    avatarSize / 2 + W * 0.006,
     0,
     Math.PI * 2
   );
+
   ctx.fillStyle = '#ff6a00';
   ctx.fill();
 
+  ctx.restore();
+
+  // قص صورة العضو بشكل دائري
+  ctx.save();
+
   ctx.beginPath();
+
   ctx.arc(
-    avatarX + avatarSize / 2,
-    avatarY + avatarSize / 2,
+    avatarCx,
+    avatarCy,
     avatarSize / 2,
     0,
     Math.PI * 2
   );
+
   ctx.clip();
 
   const avatarUrl = member.displayAvatarURL({
@@ -142,66 +147,140 @@ async function makeWelcomeImage(member) {
   });
 
   const avatar = await loadImage(avatarUrl);
-  ctx.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize);
+
+  ctx.drawImage(
+    avatar,
+    avatarX,
+    avatarY,
+    avatarSize,
+    avatarSize
+  );
+
   ctx.restore();
 
-  const textX = avatarX + avatarSize + Math.round(w * 0.055);
-  const textW = x + w - pad - textX;
+  // بيانات العضو
+  const textX = W * 0.795;
+  const textW = W * 0.155;
 
-  ctx.fillStyle = '#ff9a25';
-  ctx.font = 'bold 22px Sans';
-  ctx.fillText('NEW MEMBER', textX, avatarY + 30, textW);
+  const username =
+    member.displayName ||
+    member.user.globalName ||
+    member.user.username;
 
-  ctx.fillStyle = '#ffffff';
-  ctx.font = 'bold 30px Sans';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
 
-  const username = member.user.globalName || member.user.username;
-  ctx.fillText(username, textX, avatarY + 70, textW);
+  // اسم العضو
+  ctx.save();
 
-  ctx.fillStyle = '#ffd27a';
-  ctx.font = '20px Sans';
+  roundedRect(
+    ctx,
+    textX - W * 0.008,
+    H * 0.302,
+    textW + W * 0.02,
+    H * 0.065,
+    10
+  );
+
+  ctx.fillStyle = 'rgba(8, 3, 3, 0.97)';
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.fillStyle = '#ff8a16';
+
+  const nameSize = fitText(
+    ctx,
+    username,
+    textW,
+    Math.round(W * 0.028),
+    Math.round(W * 0.014)
+  );
+
+  ctx.font = `bold ${nameSize}px Sans`;
+
   ctx.fillText(
-    `MEMBER #${member.guild.memberCount}`,
+    username,
     textX,
-    avatarY + 105,
+    H * 0.335,
     textW
   );
 
-  const joined = (member.joinedAt || new Date()).toLocaleDateString('en-GB', {
+  // رقم العضو
+  const memberNoY = H * 0.445;
+
+  ctx.save();
+
+  roundedRect(
+    ctx,
+    textX - W * 0.008,
+    memberNoY - H * 0.024,
+    textW + W * 0.02,
+    H * 0.048,
+    8
+  );
+
+  ctx.fillStyle = 'rgba(8, 3, 3, 0.97)';
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.fillStyle = '#ffffff';
+
+  ctx.font = `bold ${Math.round(W * 0.013)}px Sans`;
+
+  ctx.fillText(
+    `MEMBER #${member.guild.memberCount}`,
+    textX,
+    memberNoY,
+    textW
+  );
+
+  // تاريخ الانضمام
+  const joined = (
+    member.joinedAt || new Date()
+  ).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
     timeZone: 'Africa/Cairo'
   });
 
-  ctx.strokeStyle = 'rgba(255,106,0,0.75)';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(x + pad, top + panelH - 105);
-  ctx.lineTo(x + w - pad, top + panelH - 105);
-  ctx.stroke();
+  const joinedY = H * 0.49;
 
-  ctx.fillStyle = '#ffffff';
-  ctx.font = '22px Sans';
+  ctx.save();
+
+  roundedRect(
+    ctx,
+    textX - W * 0.008,
+    joinedY - H * 0.023,
+    textW + W * 0.02,
+    H * 0.046,
+    8
+  );
+
+  ctx.fillStyle = 'rgba(8, 3, 3, 0.97)';
+  ctx.fill();
+
+  ctx.restore();
+
+  ctx.fillStyle = '#ffd27a';
+
+  ctx.font = `bold ${Math.round(W * 0.012)}px Sans`;
+
   ctx.fillText(
     `JOINED: ${joined}`,
-    x + pad,
-    top + panelH - 65,
-    w - pad * 2
+    textX,
+    joinedY,
+    textW
   );
 
-  ctx.fillStyle = '#ff7a18';
-  ctx.font = 'bold 24px Sans';
-  ctx.fillText(
-    '🔥  TOGETHER WE RISE  👑',
-    x + pad,
-    top + panelH - 25,
-    w - pad * 2
+  return new AttachmentBuilder(
+    await canvas.encode('png'),
+    {
+      name: 'elnaar-welcome.png'
+    }
   );
-
-  return new AttachmentBuilder(await canvas.encode('png'), {
-    name: 'elnaar-welcome.png'
-  });
 }
 
 // ═══════════════════════════════════════
@@ -223,7 +302,72 @@ client.once(Events.ClientReady, (readyClient) => {
 });
 
 // ═══════════════════════════════════════
-// AUTOMATIC WELCOME — ORIGINAL MESSAGE
+// SEND WELCOME MESSAGE
+// ═══════════════════════════════════════
+
+async function sendWelcome(member, channel) {
+  let files = [];
+
+  try {
+    files = [
+      await makeWelcomeImage(member)
+    ];
+  } catch (imageError) {
+    console.error(
+      '[WELCOME IMAGE] تعذر تجهيز الصورة، هنبعت ترحيب عادي:',
+      imageError
+    );
+  }
+
+  const embed = new EmbedBuilder()
+    .setColor(0xff5a0a)
+    .setTitle('🔥 شرارة جديدة انضمت إلى ElNaaR!')
+    .setDescription(
+      `أهلًا ${member} في **ElNaaR — BORN IN FIRE** 👑\n\n` +
+      '🔥 مش مجرد سيرفر؛ دي عيلة بتكبر بكل أسطورة جديدة.\n' +
+      '⚔️ احترم الجميع، شاركنا الحماس، وخلي وجودك علامة مميزة!'
+    )
+    .setThumbnail(
+      member.displayAvatarURL({ size: 256 })
+    )
+    .addFields(
+      {
+        name: '👑 العضو رقم',
+        value: `**${member.guild.memberCount}**`,
+        inline: true
+      },
+      {
+        name: '📅 تاريخ الانضمام',
+        value: `<t:${Math.floor(Date.now() / 1000)}:D>`,
+        inline: true
+      },
+      {
+        name: '🌋 هويتنا',
+        value: '**ELNAAR • BORN IN FIRE**',
+        inline: false
+      }
+    )
+    .setFooter({
+      text: 'ELNAAR • RESPECT • UNITY • FIRE 🔥'
+    })
+    .setTimestamp();
+
+  if (files.length) {
+    embed.setImage('attachment://elnaar-welcome.png');
+  }
+
+  await channel.send({
+    content: `🔥 أهلًا ${member}! الإمبراطورية نورت بوجودك. 🔥`,
+    embeds: [embed],
+    files,
+    allowedMentions: {
+      users: [member.id]
+    },
+  });
+}
+
+// ═══════════════════════════════════════
+// AUTOMATIC WELCOME
 // ═══════════════════════════════════════
 
 client.on(Events.GuildMemberAdd, async (member) => {
@@ -233,71 +377,28 @@ client.on(Events.GuildMemberAdd, async (member) => {
       .catch(() => null);
 
     if (!channel || !channel.isTextBased() || !channel.send) {
-      console.error('[WELCOME] راجع WELCOME_CHANNEL_ID وصلاحيات البوت.');
+      console.error(
+        '[WELCOME] راجع WELCOME_CHANNEL_ID وصلاحيات البوت.'
+      );
       return;
     }
 
-    let files = [];
+    await sendWelcome(member, channel);
 
-    try {
-      files = [await makeWelcomeImage(member)];
-    } catch (imageError) {
-      console.error(
-        '[WELCOME IMAGE] تعذر تجهيز الصورة، هنبعت ترحيب عادي:',
-        imageError
-      );
-    }
+    console.log(
+      `[WELCOME] تم الترحيب بـ ${member.user.tag}`
+    );
 
-    const embed = new EmbedBuilder()
-      .setColor(0xff5a0a)
-      .setTitle('🔥 شرارة جديدة انضمت إلى ElNaaR!')
-      .setDescription(
-        `أهلًا ${member} في **ElNaaR — BORN IN FIRE** 👑\n\n` +
-        '🔥 مش مجرد سيرفر؛ دي عيلة بتكبر بكل أسطورة جديدة.\n' +
-        '⚔️ احترم الجميع، شاركنا الحماس، وخلي وجودك علامة مميزة!'
-      )
-      .setThumbnail(member.displayAvatarURL({ size: 256 }))
-      .addFields(
-        {
-          name: '👑 العضو رقم',
-          value: `**${member.guild.memberCount}**`,
-          inline: true
-        },
-        {
-          name: '📅 تاريخ الانضمام',
-          value: `<t:${Math.floor(Date.now() / 1000)}:D>`,
-          inline: true
-        },
-        {
-          name: '🌋 هويتنا',
-          value: '**ELNAAR • BORN IN FIRE**',
-          inline: false
-        }
-      )
-      .setFooter({
-        text: 'ELNAAR • RESPECT • UNITY • FIRE 🔥'
-      })
-      .setTimestamp();
-
-    if (files.length) {
-      embed.setImage('attachment://elnaar-welcome.png');
-    }
-
-    await channel.send({
-      content: `🔥 أهلًا ${member}! الإمبراطورية نورت بوجودك. 🔥`,
-      embeds: [embed],
-      files,
-      allowedMentions: { users: [member.id] },
-    });
-
-    console.log(`[WELCOME] تم الترحيب بـ ${member.user.tag}`);
   } catch (error) {
-    console.error('[WELCOME] خطأ أثناء الترحيب:', error);
+    console.error(
+      '[WELCOME] خطأ أثناء الترحيب:',
+      error
+    );
   }
 });
 
 // ═══════════════════════════════════════
-// AUTOMATIC REPLIES — ORIGINAL BEHAVIOR
+// AUTOMATIC REPLIES
 // ═══════════════════════════════════════
 
 client.on(Events.MessageCreate, async (message) => {
@@ -315,39 +416,83 @@ client.on(Events.MessageCreate, async (message) => {
   let description;
   let color = 0xff5a0a;
 
-  if (['السلام عليكم', 'سلام عليكم', 'salam', 'salaam'].includes(msg)) {
+  if (
+    ['السلام عليكم', 'سلام عليكم', 'salam', 'salaam'].includes(msg)
+  ) {
     title = '🔥 وعليكم السلام ورحمة الله وبركاته';
-    description = `أهلًا ${message.author}، نوّرت ElNaaR! 🌋`;
+
+    description =
+      `أهلًا ${message.author}، نوّرت ElNaaR! 🌋`;
 
   } else if (
-    ['ازيك', 'إزيك', 'اخبارك', 'أخبارك', 'how are you', 'how r u'].includes(msg)
+    [
+      'ازيك',
+      'إزيك',
+      'اخبارك',
+      'أخبارك',
+      'how are you',
+      'how r u'
+    ].includes(msg)
   ) {
     title = '⚡ النار مولّعة والحماس عالي!';
-    description = `أنا تمام يا ${message.author} 🔥 إنت أخبارك إيه؟`;
+
+    description =
+      `أنا تمام يا ${message.author} 🔥 إنت أخبارك إيه؟`;
 
   } else if (
-    ['صباح الخير', 'صباح الفل', 'صباح النور', 'good morning'].includes(msg)
+    [
+      'صباح الخير',
+      'صباح الفل',
+      'صباح النور',
+      'good morning'
+    ].includes(msg)
   ) {
     title = '🌅 صباح كله طاقة!';
-    description = `صباح النور يا ${message.author}، يومك يبقى مليان انتصارات! 🔥`;
+
+    description =
+      `صباح النور يا ${message.author}، يومك يبقى مليان انتصارات! 🔥`;
+
     color = 0xffb000;
 
   } else if (
-    ['مساء الخير', 'مساء الفل', 'good evening', 'good night'].includes(msg)
+    [
+      'مساء الخير',
+      'مساء الفل',
+      'good evening',
+      'good night'
+    ].includes(msg)
   ) {
     title = '🌙 مساء الحماس يا بطل!';
-    description = `نورت الشات يا ${message.author}، خلي ليلتك أسطورية! 🌋`;
+
+    description =
+      `نورت الشات يا ${message.author}، خلي ليلتك أسطورية! 🌋`;
 
   } else if (
-    ['مين عملك', 'مين صنعك', 'مين المطور', 'who made you', 'developer'].includes(msg)
+    [
+      'مين عملك',
+      'مين صنعك',
+      'مين المطور',
+      'who made you',
+      'developer'
+    ].includes(msg)
   ) {
     title = '👑 مطوّر ElNaaR';
-    description = 'تم تجهيز بوت ElNaaR لخدمة أعضاء الإمبراطورية. 🔥';
+
+    description =
+      'تم تجهيز بوت ElNaaR لخدمة أعضاء الإمبراطورية. 🔥';
 
   } else if (
-    ['الاوامر', 'الأوامر', 'اوامر', 'مساعدة', 'help', 'commands'].includes(msg)
+    [
+      'الاوامر',
+      'الأوامر',
+      'اوامر',
+      'مساعدة',
+      'help',
+      'commands'
+    ].includes(msg)
   ) {
     title = '📜 أوامر ElNaaR';
+
     description =
       '🔥 السلام عليكم • إزيك • صباح الخير • مساء الخير • مين المطور\n' +
       'اكتب أي تحية من دول وأنا هرد عليك هنا.';
@@ -365,7 +510,9 @@ client.on(Events.MessageCreate, async (message) => {
     })
     .setTimestamp();
 
-  await message.reply({ embeds: [embed] }).catch((error) => {
+  await message.reply({
+    embeds: [embed]
+  }).catch((error) => {
     console.error('[REPLY]', error);
   });
 });
@@ -376,7 +523,9 @@ client.on(Events.MessageCreate, async (message) => {
 
 client.on(Events.MessageCreate, async (message) => {
   try {
-    if (!message.guild || message.author.bot) return;
+    if (!message.guild || message.author.bot) {
+      return;
+    }
 
     const content = message.content.trim();
 
@@ -388,19 +537,24 @@ client.on(Events.MessageCreate, async (message) => {
       '!helpadmin'
     ];
 
-    const command = content.split(/\s+/)[0].toLowerCase();
+    const command = content
+      .split(/\s+/)[0]
+      .toLowerCase();
 
-    if (!adminCommands.includes(command)) return;
+    if (!adminCommands.includes(command)) {
+      return;
+    }
 
-    // منع أي شخص غير صاحب الحساب المحدد من تنفيذ أوامر الإدارة
+    // أوامر الإدارة لصاحب الحساب فقط
     if (!isOwner(message.author.id)) {
       await message.reply(
         '⛔ أوامر الإدارة متاحة لمدير ElNaaR فقط.'
       );
+
       return;
     }
 
-    // !panel — لوحة تحكم المدير
+    // !panel
     if (command === '!panel') {
       const panel = new EmbedBuilder()
         .setColor(0xff5a0a)
@@ -419,38 +573,52 @@ client.on(Events.MessageCreate, async (message) => {
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [panel] });
+      await message.reply({
+        embeds: [panel]
+      });
+
       return;
     }
 
-    // !helpadmin — قائمة الأوامر
+    // !helpadmin
     if (command === '!helpadmin') {
       const help = new EmbedBuilder()
         .setColor(0xff6a00)
         .setTitle('📜 ELNAAR ADMIN COMMANDS')
         .setDescription(
-          '`!panel`\nعرض لوحة تحكم المسؤول.\n\n' +
-          '`!welcome @member`\nإعادة إرسال رسالة الترحيب للعضو مع الصورة.\n\n' +
-          '`!say اكتب رسالتك هنا`\nإرسال رسالة من البوت.\n\n' +
-          '`!stats`\nعرض إحصائيات السيرفر والبوت.'
+          '`!panel`\n' +
+          'عرض لوحة تحكم المسؤول.\n\n' +
+          '`!welcome @member`\n' +
+          'إعادة إرسال رسالة الترحيب للعضو مع الصورة.\n\n' +
+          '`!say اكتب رسالتك هنا`\n' +
+          'إرسال رسالة من البوت.\n\n' +
+          '`!stats`\n' +
+          'عرض إحصائيات السيرفر والبوت.'
         )
         .setFooter({
           text: 'OWNER ONLY • ELNAAR 🔥'
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [help] });
+      await message.reply({
+        embeds: [help]
+      });
+
       return;
     }
 
-    // !say — إرسال رسالة باسم البوت
+    // !say
     if (command === '!say') {
-      const textToSend = content.slice(command.length).trim();
+      const textToSend = content
+        .slice(command.length)
+        .trim();
 
       if (!textToSend) {
         await message.reply(
-          '⚠️ اكتب الرسالة بعد الأمر.\nمثال: `!say أهلًا بكم في ElNaaR 🔥`'
+          '⚠️ اكتب الرسالة بعد الأمر.\n' +
+          'مثال: `!say أهلًا بكم في ElNaaR 🔥`'
         );
+
         return;
       }
 
@@ -462,10 +630,11 @@ client.on(Events.MessageCreate, async (message) => {
       });
 
       await message.react('✅').catch(() => {});
+
       return;
     }
 
-    // !stats — إحصائيات السيرفر والبوت
+    // !stats
     if (command === '!stats') {
       const guild = message.guild;
 
@@ -504,18 +673,23 @@ client.on(Events.MessageCreate, async (message) => {
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [stats] });
+      await message.reply({
+        embeds: [stats]
+      });
+
       return;
     }
 
-    // !welcome @member — إعادة إرسال الترحيب مع الصورة
+    // !welcome @member
     if (command === '!welcome') {
       const target = message.mentions.members.first();
 
       if (!target) {
         await message.reply(
-          '⚠️ منشن العضو المطلوب.\nمثال: `!welcome @member`'
+          '⚠️ منشن العضو المطلوب.\n' +
+          'مثال: `!welcome @member`'
         );
+
         return;
       }
 
@@ -527,67 +701,24 @@ client.on(Events.MessageCreate, async (message) => {
         await message.reply(
           '❌ مش قادر أوصل لقناة الترحيب. راجع WELCOME_CHANNEL_ID وصلاحيات البوت.'
         );
+
         return;
       }
 
-      let files = [];
+      await sendWelcome(target, channel);
 
-      try {
-        files = [await makeWelcomeImage(target)];
-      } catch (imageError) {
-        console.error('[ADMIN WELCOME IMAGE]', imageError);
-      }
+      await message.reply(
+        '✅ تم إرسال الترحيب للعضو بنجاح.'
+      );
 
-      const embed = new EmbedBuilder()
-        .setColor(0xff5a0a)
-        .setTitle('🔥 شرارة جديدة انضمت إلى ElNaaR!')
-        .setDescription(
-          `أهلًا ${target} في **ElNaaR — BORN IN FIRE** 👑\n\n` +
-          '🔥 مش مجرد سيرفر؛ دي عيلة بتكبر بكل أسطورة جديدة.\n' +
-          '⚔️ احترم الجميع، شاركنا الحماس، وخلي وجودك علامة مميزة!'
-        )
-        .setThumbnail(target.displayAvatarURL({ size: 256 }))
-        .addFields(
-          {
-            name: '👑 العضو رقم',
-            value: `**${target.guild.memberCount}**`,
-            inline: true
-          },
-          {
-            name: '📅 تاريخ الانضمام',
-            value: `<t:${Math.floor(Date.now() / 1000)}:D>`,
-            inline: true
-          },
-          {
-            name: '🌋 هويتنا',
-            value: '**ELNAAR • BORN IN FIRE**',
-            inline: false
-          }
-        )
-        .setFooter({
-          text: 'ELNAAR • RESPECT • UNITY • FIRE 🔥'
-        })
-        .setTimestamp();
-
-      if (files.length) {
-        embed.setImage('attachment://elnaar-welcome.png');
-      }
-
-      await channel.send({
-        content: `🔥 أهلًا ${target}! الإمبراطورية نورت بوجودك. 🔥`,
-        embeds: [embed],
-        files,
-        allowedMentions: {
-          users: [target.id]
-        }
-      });
-
-      await message.reply('✅ تم إرسال الترحيب للعضو بنجاح.');
       return;
     }
 
   } catch (error) {
-    console.error('[OWNER COMMAND ERROR]', error);
+    console.error(
+      '[OWNER COMMAND ERROR]',
+      error
+    );
 
     await message.reply(
       '❌ حصل خطأ أثناء تنفيذ الأمر. راجع سجل التشغيل.'
