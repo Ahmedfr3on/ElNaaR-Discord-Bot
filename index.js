@@ -50,7 +50,7 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — DYNAMIC MEMBER DETAILS
+// WELCOME IMAGE — UPDATED MEMBER DETAILS
 // ═══════════════════════════════════════
 
 function roundedRect(ctx, x, y, w, h, r) {
@@ -59,19 +59,8 @@ function roundedRect(ctx, x, y, w, h, r) {
   ctx.arcTo(x + w, y, x + w, y + h, r);
   ctx.arcTo(x + w, y + h, x, y + h, r);
   ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
+  ctx.arcTo(x, y, x + w, y);
   ctx.closePath();
-}
-
-function fitText(ctx, text, maxWidth, startSize, fontWeight = 'bold') {
-  let size = startSize;
-
-  do {
-    ctx.font = `${fontWeight} ${size}px Sans`;
-    size -= 1;
-  } while (ctx.measureText(text).width > maxWidth && size > 12);
-
-  return ctx.font;
 }
 
 async function makeWelcomeImage(member) {
@@ -81,10 +70,13 @@ async function makeWelcomeImage(member) {
 
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
-  // صورة العضو داخل الدائرة الذهبية في التصميم
-  const avatarCX = Math.round(bg.width * 0.731);
-  const avatarCY = Math.round(bg.height * 0.412);
-  const avatarR = Math.round(bg.width * 0.055);
+  // ═══════════════════════════════
+  // MEMBER AVATAR
+  // ═══════════════════════════════
+
+  const avatarCX = 1120;
+  const avatarCY = 420;
+  const avatarR = 83;
 
   const avatarUrl = member.displayAvatarURL({
     extension: 'png',
@@ -94,11 +86,20 @@ async function makeWelcomeImage(member) {
   const avatar = await loadImage(avatarUrl);
 
   ctx.save();
+
   ctx.beginPath();
-  ctx.arc(avatarCX, avatarCY, avatarR - 3, 0, Math.PI * 2);
+  ctx.arc(
+    avatarCX,
+    avatarCY,
+    avatarR,
+    0,
+    Math.PI * 2
+  );
+
   ctx.clip();
 
-  const diameter = (avatarR - 3) * 2;
+  const diameter = avatarR * 2;
+
   const scale = Math.max(
     diameter / avatar.width,
     diameter / avatar.height
@@ -117,93 +118,130 @@ async function makeWelcomeImage(member) {
 
   ctx.restore();
 
-  // اسم العضو
-  const username = member.user.globalName || member.user.username;
+  // ═══════════════════════════════
+  // MEMBER NAME
+  // ═══════════════════════════════
 
-  const nameX = Math.round(bg.width * 0.807);
-  const nameY = Math.round(bg.height * 0.389);
-  const nameW = Math.round(bg.width * 0.145);
+  const username =
+    member.user.globalName || member.user.username;
 
   ctx.save();
+
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff0c2';
-  ctx.shadowColor = '#ff7a00';
-  ctx.shadowBlur = 8;
+  ctx.fillStyle = '#FFF0C2';
+  ctx.shadowColor = '#FF7A00';
+  ctx.shadowBlur = 3;
 
-  fitText(ctx, username, nameW, 25, 'bold');
+  let nameFontSize = 27;
+
+  ctx.font = `bold ${nameFontSize}px Sans`;
+
+  while (
+    ctx.measureText(username).width > 205 &&
+    nameFontSize > 12
+  ) {
+    nameFontSize--;
+    ctx.font = `bold ${nameFontSize}px Sans`;
+  }
+
+  ctx.lineWidth = 1;
+  ctx.strokeStyle = '#401000';
+
+  ctx.strokeText(
+    username,
+    1353,
+    408,
+    210
+  );
 
   ctx.fillText(
     username,
-    nameX + nameW / 2,
-    nameY + 17,
-    nameW
+    1353,
+    408,
+    210
   );
 
   ctx.restore();
 
-  // رقم العضو
-  const memberNumber = String(member.guild.memberCount);
+  // ═══════════════════════════════
+  // MEMBER NUMBER
+  // ═══════════════════════════════
+
+  const memberNumber = String(
+    member.guild.memberCount
+  );
 
   ctx.save();
+
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff0c2';
-  ctx.shadowColor = '#ff7a00';
-  ctx.shadowBlur = 5;
-  ctx.font = 'bold 22px Sans';
+  ctx.font = 'bold 23px Sans';
+  ctx.fillStyle = '#FFF0C2';
+  ctx.shadowColor = '#FF7A00';
+  ctx.shadowBlur = 3;
 
   ctx.fillText(
     memberNumber,
-    Math.round(bg.width * 0.888),
-    Math.round(bg.height * 0.451),
-    Math.round(bg.width * 0.055)
+    1380,
+    458,
+    75
   );
 
   ctx.restore();
 
-  // تاريخ انضمام العضو
-  const joinedDate = (member.joinedAt || new Date()).toLocaleDateString(
-    'en-GB',
-    {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      timeZone: 'Africa/Cairo'
-    }
-  );
+  // ═══════════════════════════════
+  // JOINED DATE
+  // ═══════════════════════════════
 
-  const dateX = Math.round(bg.width * 0.879);
-  const dateY = Math.round(bg.height * 0.478);
-  const dateW = Math.round(bg.width * 0.075);
-  const dateH = Math.round(bg.height * 0.026);
+  const joinedDate = (
+    member.joinedAt || new Date()
+  ).toLocaleDateString('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'Africa/Cairo'
+  });
 
   ctx.save();
 
-  roundedRect(ctx, dateX, dateY, dateW, dateH, 9);
-  ctx.fillStyle = '#100807';
-  ctx.fill();
-
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillStyle = '#fff0c2';
-  ctx.shadowColor = '#ff7a00';
-  ctx.shadowBlur = 4;
+  ctx.fillStyle = '#FFF0C2';
+  ctx.shadowColor = '#FF7A00';
+  ctx.shadowBlur = 3;
 
-  fitText(ctx, joinedDate, dateW - 8, 16, 'bold');
+  let dateFontSize = 15;
+
+  ctx.font = `bold ${dateFontSize}px Sans`;
+
+  while (
+    ctx.measureText(joinedDate).width > 94 &&
+    dateFontSize > 10
+  ) {
+    dateFontSize--;
+    ctx.font = `bold ${dateFontSize}px Sans`;
+  }
 
   ctx.fillText(
     joinedDate,
-    dateX + dateW / 2,
-    dateY + dateH / 2,
-    dateW - 8
+    1400,
+    501,
+    94
   );
 
   ctx.restore();
 
-  return new AttachmentBuilder(await canvas.encode('png'), {
-    name: 'elnaar-welcome.png'
-  });
+  // ═══════════════════════════════
+  // EXPORT IMAGE
+  // ═══════════════════════════════
+
+  return new AttachmentBuilder(
+    await canvas.encode('png'),
+    {
+      name: 'elnaar-welcome.png'
+    }
+  );
 }
 
 // ═══════════════════════════════════════
@@ -235,7 +273,9 @@ client.on(Events.GuildMemberAdd, async (member) => {
       .catch(() => null);
 
     if (!channel || !channel.isTextBased() || !channel.send) {
-      console.error('[WELCOME] راجع WELCOME_CHANNEL_ID وصلاحيات البوت.');
+      console.error(
+        '[WELCOME] راجع WELCOME_CHANNEL_ID وصلاحيات البوت.'
+      );
       return;
     }
 
@@ -289,12 +329,19 @@ client.on(Events.GuildMemberAdd, async (member) => {
       content: `🔥 أهلًا ${member}! الإمبراطورية نورت بوجودك. 🔥`,
       embeds: [embed],
       files,
-      allowedMentions: { users: [member.id] },
+      allowedMentions: {
+        users: [member.id]
+      },
     });
 
-    console.log(`[WELCOME] تم الترحيب بـ ${member.user.tag}`);
+    console.log(
+      `[WELCOME] تم الترحيب بـ ${member.user.tag}`
+    );
   } catch (error) {
-    console.error('[WELCOME] خطأ أثناء الترحيب:', error);
+    console.error(
+      '[WELCOME] خطأ أثناء الترحيب:',
+      error
+    );
   }
 });
 
@@ -317,37 +364,69 @@ client.on(Events.MessageCreate, async (message) => {
   let description;
   let color = 0xff5a0a;
 
-  if (['السلام عليكم', 'سلام عليكم', 'salam', 'salaam'].includes(msg)) {
+  if (
+    ['السلام عليكم', 'سلام عليكم', 'salam', 'salaam'].includes(msg)
+  ) {
     title = '🔥 وعليكم السلام ورحمة الله وبركاته';
     description = `أهلًا ${message.author}، نوّرت ElNaaR! 🌋`;
 
   } else if (
-    ['ازيك', 'إزيك', 'اخبارك', 'أخبارك', 'how are you', 'how r u'].includes(msg)
+    [
+      'ازيك',
+      'إزيك',
+      'اخبارك',
+      'أخبارك',
+      'how are you',
+      'how r u'
+    ].includes(msg)
   ) {
     title = '⚡ النار مولّعة والحماس عالي!';
     description = `أنا تمام يا ${message.author} 🔥 إنت أخبارك إيه؟`;
 
   } else if (
-    ['صباح الخير', 'صباح الفل', 'صباح النور', 'good morning'].includes(msg)
+    [
+      'صباح الخير',
+      'صباح الفل',
+      'صباح النور',
+      'good morning'
+    ].includes(msg)
   ) {
     title = '🌅 صباح كله طاقة!';
     description = `صباح النور يا ${message.author}، يومك يبقى مليان انتصارات! 🔥`;
     color = 0xffb000;
 
   } else if (
-    ['مساء الخير', 'مساء الفل', 'good evening', 'good night'].includes(msg)
+    [
+      'مساء الخير',
+      'مساء الفل',
+      'good evening',
+      'good night'
+    ].includes(msg)
   ) {
     title = '🌙 مساء الحماس يا بطل!';
     description = `نورت الشات يا ${message.author}، خلي ليلتك أسطورية! 🌋`;
 
   } else if (
-    ['مين عملك', 'مين صنعك', 'مين المطور', 'who made you', 'developer'].includes(msg)
+    [
+      'مين عملك',
+      'مين صنعك',
+      'مين المطور',
+      'who made you',
+      'developer'
+    ].includes(msg)
   ) {
     title = '👑 مطوّر ElNaaR';
     description = 'تم تجهيز بوت ElNaaR لخدمة أعضاء الإمبراطورية. 🔥';
 
   } else if (
-    ['الاوامر', 'الأوامر', 'اوامر', 'مساعدة', 'help', 'commands'].includes(msg)
+    [
+      'الاوامر',
+      'الأوامر',
+      'اوامر',
+      'مساعدة',
+      'help',
+      'commands'
+    ].includes(msg)
   ) {
     title = '📜 أوامر ElNaaR';
     description =
@@ -367,7 +446,9 @@ client.on(Events.MessageCreate, async (message) => {
     })
     .setTimestamp();
 
-  await message.reply({ embeds: [embed] }).catch((error) => {
+  await message.reply({
+    embeds: [embed]
+  }).catch((error) => {
     console.error('[REPLY]', error);
   });
 });
@@ -421,7 +502,10 @@ client.on(Events.MessageCreate, async (message) => {
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [panel] });
+      await message.reply({
+        embeds: [panel]
+      });
+
       return;
     }
 
@@ -441,13 +525,18 @@ client.on(Events.MessageCreate, async (message) => {
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [help] });
+      await message.reply({
+        embeds: [help]
+      });
+
       return;
     }
 
     // !say
     if (command === '!say') {
-      const textToSend = content.slice(command.length).trim();
+      const textToSend = content
+        .slice(command.length)
+        .trim();
 
       if (!textToSend) {
         await message.reply(
@@ -464,6 +553,7 @@ client.on(Events.MessageCreate, async (message) => {
       });
 
       await message.react('✅').catch(() => {});
+
       return;
     }
 
@@ -506,7 +596,10 @@ client.on(Events.MessageCreate, async (message) => {
         })
         .setTimestamp();
 
-      await message.reply({ embeds: [stats] });
+      await message.reply({
+        embeds: [stats]
+      });
+
       return;
     }
 
@@ -537,7 +630,10 @@ client.on(Events.MessageCreate, async (message) => {
       try {
         files = [await makeWelcomeImage(target)];
       } catch (imageError) {
-        console.error('[ADMIN WELCOME IMAGE]', imageError);
+        console.error(
+          '[ADMIN WELCOME IMAGE]',
+          imageError
+        );
       }
 
       const embed = new EmbedBuilder()
@@ -584,12 +680,18 @@ client.on(Events.MessageCreate, async (message) => {
         }
       });
 
-      await message.reply('✅ تم إرسال الترحيب للعضو بنجاح.');
+      await message.reply(
+        '✅ تم إرسال الترحيب للعضو بنجاح.'
+      );
+
       return;
     }
 
   } catch (error) {
-    console.error('[OWNER COMMAND ERROR]', error);
+    console.error(
+      '[OWNER COMMAND ERROR]',
+      error
+    );
 
     await message.reply(
       '❌ حصل خطأ أثناء تنفيذ الأمر. راجع سجل التشغيل.'
