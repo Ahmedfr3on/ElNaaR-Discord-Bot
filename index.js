@@ -50,7 +50,7 @@ function isOwner(userId) {
 }
 
 // ═══════════════════════════════════════
-// WELCOME IMAGE — FIXED TEXT RENDERING
+// WELCOME IMAGE — UPDATED MEMBER DETAILS
 // ═══════════════════════════════════════
 
 function roundedRect(ctx, x, y, w, h, r) {
@@ -71,12 +71,13 @@ async function makeWelcomeImage(member) {
   ctx.drawImage(bg, 0, 0, bg.width, bg.height);
 
   // ═══════════════════════════════
-  // MEMBER AVATAR (زي ما هي مظبوطة)
+  // MEMBER AVATAR (مكان الصورة)
   // ═══════════════════════════════
 
-  const avatarCX = 1095; 
-  const avatarCY = 420;  
-  const avatarR = 83;    
+  // ضبطت الأرقام دي عشان تنزل في نص الدائرة بالظبط
+  const avatarCX = 1110; 
+  const avatarCY = 440;  
+  const avatarR = 82;    
 
   const avatarUrl = member.displayAvatarURL({
     extension: 'png',
@@ -122,29 +123,18 @@ async function makeWelcomeImage(member) {
   // MEMBER NAME (الاسم)
   // ═══════════════════════════════
 
-  const username = member.user.globalName || member.user.username;
+  const username =
+    member.user.globalName || member.user.username;
 
   ctx.save();
+
   ctx.textAlign = 'center'; 
   ctx.textBaseline = 'middle';
-  
-  // نص أبيض ناصع عشان يبان
-  ctx.fillStyle = '#FFFFFF'; 
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 3;
+  ctx.font = 'bold 22px sans-serif'; 
+  ctx.fillStyle = '#FFFFFF'; // أبيض ناصع عشان يبان
 
-  let nameFontSize = 24;
-  ctx.font = `bold ${nameFontSize}px Sans`;
-
-  // تصغير الخط لو الاسم طويل
-  while (ctx.measureText(username).width > 180 && nameFontSize > 12) {
-    nameFontSize--;
-    ctx.font = `bold ${nameFontSize}px Sans`;
-  }
-
-  // مكان الاسم في المربع الفاضي
-  ctx.strokeText(username, 1345, 385);
-  ctx.fillText(username, 1345, 385);
+  // مكان الاسم جوه المستطيل الطويل اللي تحت التاج
+  ctx.fillText(username, 1345, 390);
 
   ctx.restore();
 
@@ -152,21 +142,19 @@ async function makeWelcomeImage(member) {
   // MEMBER NUMBER (رقم العضو)
   // ═══════════════════════════════
 
-  const memberNumber = String(member.guild.memberCount);
+  const memberNumber = String(
+    member.guild.memberCount
+  );
 
   ctx.save();
+
   ctx.textAlign = 'left';
   ctx.textBaseline = 'middle';
-  
+  ctx.font = 'bold 20px sans-serif';
   ctx.fillStyle = '#FFFFFF'; 
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 3;
-  
-  ctx.font = 'bold 22px Sans';
 
-  // مكان الرقم جنب كلمة MEMBER #
-  ctx.strokeText(memberNumber, 1355, 455);
-  ctx.fillText(memberNumber, 1355, 455);
+  // مكان الرقم بعد كلمة MEMBER #
+  ctx.fillText(memberNumber, 1380, 465);
 
   ctx.restore();
 
@@ -174,7 +162,9 @@ async function makeWelcomeImage(member) {
   // JOINED DATE (تاريخ الانضمام)
   // ═══════════════════════════════
 
-  const joinedDate = (member.joinedAt || new Date()).toLocaleDateString('en-GB', {
+  const joinedDate = (
+    member.joinedAt || new Date()
+  ).toLocaleDateString('en-GB', {
     day: '2-digit',
     month: 'short',
     year: 'numeric',
@@ -182,25 +172,14 @@ async function makeWelcomeImage(member) {
   });
 
   ctx.save();
+
   ctx.textAlign = 'left'; 
   ctx.textBaseline = 'middle';
-  
+  ctx.font = 'bold 16px sans-serif';
   ctx.fillStyle = '#FFFFFF'; 
-  ctx.strokeStyle = '#000000';
-  ctx.lineWidth = 3;
 
-  let dateFontSize = 18;
-  ctx.font = `bold ${dateFontSize}px Sans`;
-
-  // تصغير الخط لو التاريخ طويل
-  while (ctx.measureText(joinedDate).width > 100 && dateFontSize > 10) {
-    dateFontSize--;
-    ctx.font = `bold ${dateFontSize}px Sans`;
-  }
-
-  // مكان التاريخ جنب كلمة JOINED:
-  ctx.strokeText(joinedDate, 1355, 500);
-  ctx.fillText(joinedDate, 1355, 500);
+  // مكان التاريخ بعد كلمة JOINED:
+  ctx.fillText(joinedDate, 1380, 505);
 
   ctx.restore();
 
