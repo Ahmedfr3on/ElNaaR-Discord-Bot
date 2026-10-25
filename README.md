@@ -1,22 +1,25 @@
-# ElNaaR Discord Bot (Node.js)
+# ElNaaR Cosmic Bot (Node.js)
 
-بوت ترحيب لأعضاء سيرفر ElNaaR الخاص بلعبة Wolf Team.
+## Configured channels
+- Welcome channel: `1561910009753903206`
+- Reply channel: `1561116825847079005`
 
-## تشغيله
-1. استخدم Node.js 20 أو أحدث.
-2. ثبّت المكتبات:
-   `npm install`
-3. أضف متغير البيئة `DISCORD_TOKEN` بقيمة توكن البوت.
-4. اختياريًا، أضف `WELCOME_CHANNEL_ID` برقم قناة الترحيب.
-5. شغّل:
-   `npm start`
+The IDs are also set as defaults in `index.js`. You can override them in EuizHost Environment Variables:
+- `DISCORD_TOKEN` = your new Discord bot token
+- `WELCOME_CHANNEL_ID` = welcome channel ID (optional if using the default)
+- `REPLY_CHANNEL_ID` = reply channel ID (optional if using the default)
 
-## إعداد Discord
-- من Discord Developer Portal > تطبيقك > Bot، فعّل **Server Members Intent** واحفظ.
-- تأكد أن البوت مضاف إلى السيرفر.
-- أعطه في قناة الترحيب صلاحيات View Channel وSend Messages وEmbed Links.
-- إذا لم تضبط `WELCOME_CHANNEL_ID`، سيحاول استخدام قناة النظام في السيرفر.
+## Features
+- Automatic welcome messages in the configured welcome channel
+- Automatic replies to selected Arabic/English greetings only in the configured reply channel
+- Help command using `help`, `مساعدة`, or `الاوامر`
+- Discord presence set to Do Not Disturb
 
-## الأمان
-لا تضع توكن البوت في ملفات GitHub ولا ترسله لأي شخص. خزّنه في Environment Variables لدى الاستضافة.
-رفع المشروع على GitHub وحده لا يشغّل البوت؛ تحتاج استضافة تدعم Node.js وتشغيل عملية البوت.
+## Required Discord settings
+In Discord Developer Portal → Bot, enable:
+- Server Members Intent
+- Message Content Intent
+
+The bot needs View Channel and Send Messages permissions in both channels. For embeds, it also needs Embed Links.
+
+Never publish your bot token or put it in source code. If a token was exposed, reset it in Discord Developer Portal before using this project.
